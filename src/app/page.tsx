@@ -66,7 +66,7 @@ const popularSports: PopularSport[] = [
   { name: "Tennis", image: "/sports-images/tennis.jpg" },
   { name: "Basketball", image: "/sports-images/basketball.jpg" },
   { name: "Table Tennis", image: "/sports-images/table-tennis.jpg" },
-  { name: "Volleyball", image: "/sports-images/volleyball.jpg" },
+  { name: "Volleyball", image: "/sports-images/Volleyball.jpg" },
   { name: "Squash", image: "/sports-images/squash.jpg" },
 ];
 
@@ -332,7 +332,9 @@ export default function Home() {
       <section className="py-16 md:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold tracking-tight">Popular Sports</h2>
+            <h2 className="text-3xl font-bold tracking-tight">
+              Popular Sports
+            </h2>
             <Link
               href="/venues"
               className="text-green-600 font-semibold hover:text-green-500 transition"
