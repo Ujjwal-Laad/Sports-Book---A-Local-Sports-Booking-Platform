@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -433,281 +433,283 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumb */}
-        <nav className="flex mb-8" aria-label="Breadcrumb">
-          <ol className="flex items-center space-x-4">
-            <li>
-              <Link
-                href="/venues"
-                className="text-gray-500 hover:text-gray-700"
-              >
-                Venues
-              </Link>
-            </li>
-            <li>
-              <span className="text-gray-400">/</span>
-            </li>
-            <li>
-              <Link
-                href={`/venues/${venue.id}`}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                {venue.name}
-              </Link>
-            </li>
-            <li>
-              <span className="text-gray-400">/</span>
-            </li>
-            <li>
-              <span className="text-gray-900 font-medium">
-                Book {court.name}
-              </span>
-            </li>
-          </ol>
-        </nav>
+    <Suspense>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Breadcrumb */}
+          <nav className="flex mb-8" aria-label="Breadcrumb">
+            <ol className="flex items-center space-x-4">
+              <li>
+                <Link
+                  href="/venues"
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  Venues
+                </Link>
+              </li>
+              <li>
+                <span className="text-gray-400">/</span>
+              </li>
+              <li>
+                <Link
+                  href={`/venues/${venue.id}`}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  {venue.name}
+                </Link>
+              </li>
+              <li>
+                <span className="text-gray-400">/</span>
+              </li>
+              <li>
+                <span className="text-gray-900 font-medium">
+                  Book {court.name}
+                </span>
+              </li>
+            </ol>
+          </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Booking Form */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Venue & Court Info */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center mb-4">
-                <BuildingOfficeIcon className="w-8 h-8 text-primary-600 mr-3" />
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
-                    {venue.name}
-                  </h1>
-                  <p className="text-gray-600">
-                    {venue.address}, {venue.city}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Main Booking Form */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Venue & Court Info */}
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <div className="flex items-center mb-4">
+                  <BuildingOfficeIcon className="w-8 h-8 text-primary-600 mr-3" />
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                      {venue.name}
+                    </h1>
+                    <p className="text-gray-600">
+                      {venue.address}, {venue.city}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
+                  <h2 className="font-semibold text-primary-900 mb-1">
+                    {court.name}
+                  </h2>
+                  <p className="text-primary-700">{court.sport}</p>
+                  <p className="text-lg font-semibold text-primary-900 mt-2">
+                    ₹{Number(court.pricePerHour)} per hour
                   </p>
                 </div>
               </div>
 
-              <div className="bg-primary-50 border border-primary-200 rounded-lg p-4">
-                <h2 className="font-semibold text-primary-900 mb-1">
-                  {court.name}
-                </h2>
-                <p className="text-primary-700">{court.sport}</p>
-                <p className="text-lg font-semibold text-primary-900 mt-2">
-                  ₹{Number(court.pricePerHour)} per hour
-                </p>
-              </div>
-            </div>
-
-            {/* Date Selection */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <CalendarDaysIcon className="w-5 h-5 mr-2" />
-                Select Date
-              </h3>
-
-              <div className="grid grid-cols-7 gap-2">
-                {availableDates.map((date, index) => {
-                  const isSelected = isSameDay(date, selectedDate);
-                  const isPast = isBefore(date, startOfDay(new Date()));
-
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => !isPast && setSelectedDate(date)}
-                      disabled={isPast}
-                      className={`p-3 text-center rounded-lg border transition-colors ${
-                        isPast
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : isSelected
-                          ? "bg-primary-600 text-white border-primary-600"
-                          : "border-gray-300 hover:border-primary-300 hover:bg-primary-50"
-                      }`}
-                    >
-                      <div className="text-xs font-medium">
-                        {formatDate(date, "EEE")}
-                      </div>
-                      <div className="text-lg font-bold">
-                        {formatDate(date, "d")}
-                      </div>
-                      <div className="text-xs">{formatDate(date, "MMM")}</div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Time Slot Selection */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <ClockIcon className="w-5 h-5 mr-2" />
-                Select Time Slot
-              </h3>
-
-              <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-                {timeSlots.map((slot) => {
-                  const isSelected = isSlotSelected(slot.hour);
-                  const canSelect = slot.available;
-
-                  return (
-                    <button
-                      key={slot.hour}
-                      onClick={() => handleTimeSlotSelect(slot.hour)}
-                      disabled={!canSelect}
-                      className={`p-3 text-center rounded-lg border transition-colors ${
-                        !canSelect
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : isSelected
-                          ? "bg-primary-600 text-white border-primary-600"
-                          : "border-gray-300 hover:border-primary-300 hover:bg-primary-50"
-                      }`}
-                    >
-                      <div className="font-medium">{slot.time}</div>
-                      <div className="text-xs">
-                        {canSelect
-                          ? "Available"
-                          : slot.isPast
-                          ? "Past"
-                          : "Booked"}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {timeSlots.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <p>No time slots available for the selected date.</p>
-                </div>
-              )}
-
-              <div className="flex items-center text-sm text-gray-600">
-                <div className="flex items-center mr-6">
-                  <div className="w-3 h-3 bg-white border border-gray-300 rounded mr-2"></div>
-                  <span>Available</span>
-                </div>
-                <div className="flex items-center mr-6">
-                  <div className="w-3 h-3 bg-primary-50 border border-primary-500 rounded mr-2"></div>
-                  <span>Selected</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-gray-50 border border-gray-200 rounded mr-2"></div>
-                  <span>Unavailable</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Duration Selection */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Duration
-              </h3>
-
-              <div className="flex items-center space-x-4">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Hours:
-                </label>
-                <select
-                  value={duration}
-                  onChange={(e) => setDuration(Number(e.target.value))}
-                  className="px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                >
-                  {[1, 2, 3, 4].map((hours) => (
-                    <option key={hours} value={hours}>
-                      {hours} hour{hours > 1 ? "s" : ""}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-
-          {/* Booking Summary Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-8 space-y-6">
-              {/* Booking Summary */}
+              {/* Date Selection */}
               <div className="bg-white rounded-xl shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Booking Summary
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <CalendarDaysIcon className="w-5 h-5 mr-2" />
+                  Select Date
                 </h3>
 
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Court:</span>
-                    <span className="font-medium">{court.name}</span>
-                  </div>
+                <div className="grid grid-cols-7 gap-2">
+                  {availableDates.map((date, index) => {
+                    const isSelected = isSameDay(date, selectedDate);
+                    const isPast = isBefore(date, startOfDay(new Date()));
 
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Date:</span>
-                    <span className="font-medium">
-                      {formatDate(selectedDate, "EEEE, MMMM d, yyyy")}
-                    </span>
-                  </div>
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => !isPast && setSelectedDate(date)}
+                        disabled={isPast}
+                        className={`p-3 text-center rounded-lg border transition-colors ${
+                          isPast
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : isSelected
+                            ? "bg-primary-600 text-white border-primary-600"
+                            : "border-gray-300 hover:border-primary-300 hover:bg-primary-50"
+                        }`}
+                      >
+                        <div className="text-xs font-medium">
+                          {formatDate(date, "EEE")}
+                        </div>
+                        <div className="text-lg font-bold">
+                          {formatDate(date, "d")}
+                        </div>
+                        <div className="text-xs">{formatDate(date, "MMM")}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Time:</span>
-                    <span className="font-medium">
-                      {selectedTimeSlots.length > 0
-                        ? `${selectedTimeSlots[0]
-                            .toString()
-                            .padStart(2, "0")}:00 - ${(
-                            selectedTimeSlots[0] + duration
-                          )
-                            .toString()
-                            .padStart(2, "0")}:00`
-                        : "-"}
-                    </span>
-                  </div>
+              {/* Time Slot Selection */}
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                  <ClockIcon className="w-5 h-5 mr-2" />
+                  Select Time Slot
+                </h3>
 
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Duration:</span>
-                    <span className="font-medium">
-                      {duration} hour{duration > 1 ? "s" : ""}
-                    </span>
-                  </div>
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                  {timeSlots.map((slot) => {
+                    const isSelected = isSlotSelected(slot.hour);
+                    const canSelect = slot.available;
 
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Price per hour:</span>
-                    <span className="font-medium">
-                      ₹{Number(court.pricePerHour).toFixed(0)}
-                    </span>
-                  </div>
-
-                  <div className="border-t border-gray-200 pt-3">
-                    <div className="flex justify-between">
-                      <span className="font-semibold text-gray-900">
-                        Total:
-                      </span>
-                      <span className="font-semibold text-gray-900">
-                        ₹{getTotalPrice()}
-                      </span>
-                    </div>
-                  </div>
+                    return (
+                      <button
+                        key={slot.hour}
+                        onClick={() => handleTimeSlotSelect(slot.hour)}
+                        disabled={!canSelect}
+                        className={`p-3 text-center rounded-lg border transition-colors ${
+                          !canSelect
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                            : isSelected
+                            ? "bg-primary-600 text-white border-primary-600"
+                            : "border-gray-300 hover:border-primary-300 hover:bg-primary-50"
+                        }`}
+                      >
+                        <div className="font-medium">{slot.time}</div>
+                        <div className="text-xs">
+                          {canSelect
+                            ? "Available"
+                            : slot.isPast
+                            ? "Past"
+                            : "Booked"}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
 
-                {error && (
-                  <div className="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
-                    {error}
+                {timeSlots.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No time slots available for the selected date.</p>
                   </div>
                 )}
 
-                <button
-                  onClick={handleBooking}
-                  disabled={selectedTimeSlots.length === 0 || isBooking}
-                  className={`w-full mt-6 py-3 px-4 rounded-lg font-medium transition-colors duration-200 ${
-                    selectedTimeSlots.length === 0 || isBooking
-                      ? "bg-gray-400 text-gray-500 cursor-not-allowed"
-                      : "bg-primary-600 text-white hover:bg-primary-700"
-                  }`}
-                >
-                  {isBooking ? "Processing..." : "Confirm Booking"}
-                </button>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="flex items-center mr-6">
+                    <div className="w-3 h-3 bg-white border border-gray-300 rounded mr-2"></div>
+                    <span>Available</span>
+                  </div>
+                  <div className="flex items-center mr-6">
+                    <div className="w-3 h-3 bg-primary-50 border border-primary-500 rounded mr-2"></div>
+                    <span>Selected</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-gray-50 border border-gray-200 rounded mr-2"></div>
+                    <span>Unavailable</span>
+                  </div>
+                </div>
+              </div>
 
-                <p className="text-xs text-gray-500 mt-3 text-center">
-                  You'll be redirected to payment after confirmation
-                </p>
+              {/* Duration Selection */}
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Duration
+                </h3>
+
+                <div className="flex items-center space-x-4">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Hours:
+                  </label>
+                  <select
+                    value={duration}
+                    onChange={(e) => setDuration(Number(e.target.value))}
+                    className="px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    {[1, 2, 3, 4].map((hours) => (
+                      <option key={hours} value={hours}>
+                        {hours} hour{hours > 1 ? "s" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Booking Summary Sidebar */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-8 space-y-6">
+                {/* Booking Summary */}
+                <div className="bg-white rounded-xl shadow-sm p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Booking Summary
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Court:</span>
+                      <span className="font-medium">{court.name}</span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Date:</span>
+                      <span className="font-medium">
+                        {formatDate(selectedDate, "EEEE, MMMM d, yyyy")}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Time:</span>
+                      <span className="font-medium">
+                        {selectedTimeSlots.length > 0
+                          ? `${selectedTimeSlots[0]
+                              .toString()
+                              .padStart(2, "0")}:00 - ${(
+                              selectedTimeSlots[0] + duration
+                            )
+                              .toString()
+                              .padStart(2, "0")}:00`
+                          : "-"}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Duration:</span>
+                      <span className="font-medium">
+                        {duration} hour{duration > 1 ? "s" : ""}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Price per hour:</span>
+                      <span className="font-medium">
+                        ₹{Number(court.pricePerHour).toFixed(0)}
+                      </span>
+                    </div>
+
+                    <div className="border-t border-gray-200 pt-3">
+                      <div className="flex justify-between">
+                        <span className="font-semibold text-gray-900">
+                          Total:
+                        </span>
+                        <span className="font-semibold text-gray-900">
+                          ₹{getTotalPrice()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {error && (
+                    <div className="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded-lg text-sm">
+                      {error}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleBooking}
+                    disabled={selectedTimeSlots.length === 0 || isBooking}
+                    className={`w-full mt-6 py-3 px-4 rounded-lg font-medium transition-colors duration-200 ${
+                      selectedTimeSlots.length === 0 || isBooking
+                        ? "bg-gray-400 text-gray-500 cursor-not-allowed"
+                        : "bg-primary-600 text-white hover:bg-primary-700"
+                    }`}
+                  >
+                    {isBooking ? "Processing..." : "Confirm Booking"}
+                  </button>
+
+                  <p className="text-xs text-gray-500 mt-3 text-center">
+                    You'll be redirected to payment after confirmation
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </Suspense>
   );
 }

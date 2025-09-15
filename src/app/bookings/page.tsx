@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -14,22 +14,22 @@ import {
   ExclamationTriangleIcon,
   EyeIcon,
   PlusIcon,
-  StarIcon
+  StarIcon,
 } from "@heroicons/react/24/outline";
 // Utility functions to replace date-fns
 const formatDate = (dateString: string, formatStr: string) => {
   const date = new Date(dateString);
   if (formatStr === "MMM d, yyyy") {
-    return date.toLocaleDateString("en-US", { 
-      month: "short", 
-      day: "numeric", 
-      year: "numeric" 
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   } else if (formatStr === "h:mm a") {
-    return date.toLocaleTimeString("en-US", { 
-      hour: "numeric", 
-      minute: "2-digit", 
-      hour12: true 
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
   }
   return date.toLocaleString();
@@ -77,11 +77,11 @@ interface BookingsResponse {
   };
 }
 
-export default function BookingsPage() {
+function Bookings() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -119,7 +119,7 @@ export default function BookingsPage() {
       params.append("page", currentPage.toString());
 
       const response = await fetch(`/api/bookings/user?${params.toString()}`);
-      
+
       if (response.ok) {
         const data: BookingsResponse = await response.json();
         setBookings(data.bookings);
@@ -145,8 +145,7 @@ export default function BookingsPage() {
 
   const canReviewBooking = (booking: Booking) => {
     return (
-      booking.status === "COMPLETED" &&
-      !isFuture(parseISO(booking.endTime)) // Booking has ended
+      booking.status === "COMPLETED" && !isFuture(parseISO(booking.endTime)) // Booking has ended
     );
   };
 
@@ -262,10 +261,10 @@ export default function BookingsPage() {
         {/* Success Message */}
         {showSuccessMessage && (
           <div className="mb-6 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded-lg text-sm">
-            Booking created successfully! You'll receive a confirmation email shortly.
+            Booking created successfully! You'll receive a confirmation email
+            shortly.
           </div>
         )}
-
 
         {/* Error Message */}
         {error && (
@@ -292,16 +291,19 @@ export default function BookingsPage() {
                             {booking.court?.venue?.name || "Unknown Venue"}
                           </h3>
                           <p className="text-sm text-gray-600">
-                            {booking.court?.name || "Unknown Court"} - {booking.court?.sport || "Unknown Sport"}
+                            {booking.court?.name || "Unknown Court"} -{" "}
+                            {booking.court?.sport || "Unknown Sport"}
                           </p>
                           <div className="flex items-center text-sm text-gray-500 mt-1">
                             <MapPinIcon className="w-4 h-4 mr-1" />
                             <span>
-                              {booking.court?.venue?.address || "Unknown Address"}, {booking.court?.venue?.city || "Unknown City"}
+                              {booking.court?.venue?.address ||
+                                "Unknown Address"}
+                              , {booking.court?.venue?.city || "Unknown City"}
                             </span>
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center space-x-2">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
@@ -322,7 +324,7 @@ export default function BookingsPage() {
                             {formatDate(booking.startTime, "MMM d, yyyy")}
                           </span>
                         </div>
-                        
+
                         <div className="flex items-center text-gray-600">
                           <ClockIcon className="w-4 h-4 mr-2" />
                           <span>
@@ -330,7 +332,7 @@ export default function BookingsPage() {
                             {formatDate(booking.endTime, "h:mm a")}
                           </span>
                         </div>
-                        
+
                         <div className="flex items-center text-gray-600">
                           <CurrencyDollarIcon className="w-4 h-4 mr-2" />
                           <span className="font-medium">
@@ -341,7 +343,8 @@ export default function BookingsPage() {
 
                       {/* Booking Date */}
                       <div className="mt-3 text-xs text-gray-500">
-                        Booked on {formatDate(booking.createdAt, "MMM d, yyyy")}
+                        Booked on{" "}
+                        {formatDate(booking.createdAt, "MMM d, yyyy")}
                       </div>
                     </div>
 
@@ -376,29 +379,35 @@ export default function BookingsPage() {
               <div className="flex justify-center">
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    onClick={() =>
+                      setCurrentPage(Math.max(1, currentPage - 1))
+                    }
                     disabled={currentPage === 1}
                     className="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                   >
                     Previous
                   </button>
-                  
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-2 border rounded-md ${
-                        page === currentPage
-                          ? "bg-primary-600 text-white border-primary-600"
-                          : "border-gray-300 hover:bg-gray-50"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                  
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-2 border rounded-md ${
+                          page === currentPage
+                            ? "bg-primary-600 text-white border-primary-600"
+                            : "border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    )
+                  )}
+
                   <button
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    onClick={() =>
+                      setCurrentPage(Math.min(totalPages, currentPage + 1))
+                    }
                     disabled={currentPage === totalPages}
                     className="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
                   >
@@ -413,7 +422,9 @@ export default function BookingsPage() {
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                 <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Write a Review</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Write a Review
+                    </h3>
                     <button
                       onClick={() => {
                         setReviewingBooking(null);
@@ -427,12 +438,19 @@ export default function BookingsPage() {
                   </div>
 
                   {(() => {
-                    const booking = bookings.find(b => b.id === reviewingBooking);
+                    const booking = bookings.find(
+                      (b) => b.id === reviewingBooking
+                    );
                     return booking ? (
                       <div className="mb-4">
                         <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                          <p className="font-medium text-gray-900">{booking.court?.venue?.name || "Unknown Venue"}</p>
-                          <p className="text-sm text-gray-600">{booking.court?.name || "Unknown Court"} - {booking.court?.sport || "Unknown Sport"}</p>
+                          <p className="font-medium text-gray-900">
+                            {booking.court?.venue?.name || "Unknown Venue"}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {booking.court?.name || "Unknown Court"} -{" "}
+                            {booking.court?.sport || "Unknown Sport"}
+                          </p>
                           <p className="text-sm text-gray-500">
                             {formatDate(booking.startTime, "MMM d, yyyy")}
                           </p>
@@ -448,14 +466,16 @@ export default function BookingsPage() {
                                 key={star}
                                 onClick={() => setRating(star)}
                                 className={`text-2xl ${
-                                  star <= rating ? "text-yellow-400" : "text-gray-300"
+                                  star <= rating
+                                    ? "text-yellow-400"
+                                    : "text-gray-300"
                                 } hover:text-yellow-400 transition-colors`}
                               >
                                 ★
                               </button>
                             ))}
                             <span className="ml-2 text-sm text-gray-600">
-                              {rating} star{rating !== 1 ? 's' : ''}
+                              {rating} star{rating !== 1 ? "s" : ""}
                             </span>
                           </div>
                         </div>
@@ -494,7 +514,9 @@ export default function BookingsPage() {
                             disabled={isSubmittingReview}
                             className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium transition-colors duration-200"
                           >
-                            {isSubmittingReview ? "Submitting..." : "Submit Review"}
+                            {isSubmittingReview
+                              ? "Submitting..."
+                              : "Submit Review"}
                           </button>
                         </div>
                       </div>
@@ -509,9 +531,12 @@ export default function BookingsPage() {
             <div className="text-gray-400 mb-4">
               <CalendarDaysIcon className="w-12 h-12 mx-auto" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No bookings found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No bookings found
+            </h3>
             <p className="text-gray-600 mb-4">
-              You haven't made any bookings yet. Start by booking your first court!
+              You haven't made any bookings yet. Start by booking your first
+              court!
             </p>
             <Link
               href="/venues"
@@ -524,5 +549,19 @@ export default function BookingsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function BookingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+        </div>
+      }
+    >
+      <Bookings />
+    </Suspense>
   );
 }
