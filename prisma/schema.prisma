@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+  seed     = "node -r ts-node/register -r tsconfig-paths/register prisma/seedAdmin.ts"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                Int     @id @default(autoincrement())
+  userId            Int
+  provider          String
+  providerAccountId String
+  access_token      String?
+  refresh_token     String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  User              User    @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Booking {
+  id             Int           @id @default(autoincrement())
+  userId         Int
+  courtId        Int
+  startTime      DateTime
+  endTime        DateTime
+  status         BookingStatus @default(PENDING)
+  paymentId      Int?          @unique
+  idempotencyKey String?       @unique
+  notes          String?
+  createdAt      DateTime      @default(now())
+  Court          Court         @relation(fields: [courtId], references: [id])
+  User           User          @relation(fields: [userId], references: [id])
+  Payment        Payment?
+
+  @@unique([courtId, startTime])
+  @@index([courtId])
+  @@index([status])
+  @@index([userId])
+}
+
+model Court {
+  id           Int       @id @default(autoincrement())
+  venueId      Int
+  name         String
+  sport        String
+  pricePerHour Decimal   @db.Decimal(10, 2)
+  currency     String    @default("INR")
+  openTime     Int
+  closeTime    Int
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  Booking      Booking[]
+  Venue        Venue     @relation(fields: [venueId], references: [id])
+
+  @@index([sport])
+}
+
+model EmailOtp {
+  id        Int      @id @default(autoincrement())
+  email     String
+  tokenHash String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  verified  Boolean  @default(false)
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([expiresAt])
+}
+
+model FacilityOwner {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique
+  phone        String?
+  businessName String?
+  address      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  User         User     @relation(fields: [userId], references: [id])
+  Venue        Venue[]
+}
+
+model Payment {
+  id                    Int           @id @default(autoincrement())
+  bookingId             Int?          @unique
+  gateway               String        @default("stripe")
+  stripePaymentIntentId String?       @unique
+  stripeChargeId        String?
+  amount                Decimal       @db.Decimal(10, 2)
+  currency              String        @default("INR")
+  status                PaymentStatus @default(PENDING)
+  receiptUrl            String?
+  paymentMethod         String?
+  createdAt             DateTime      @default(now())
+  Booking               Booking?      @relation(fields: [bookingId], references: [id])
+
+  @@index([status])
+  @@index([stripePaymentIntentId])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  venueId   Int
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id])
+  Venue     Venue    @relation(fields: [venueId], references: [id])
+
+  @@index([userId])
+  @@index([venueId])
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  User         User     @relation(fields: [userId], references: [id])
+
+  @@index([expires])
+  @@index([userId])
+}
+
+model User {
+  id             Int            @id @default(autoincrement())
+  email          String         @unique
+  fullName       String
+  avatarUrl      String?
+  avatarPublicId String?
+  passwordHash   String
+  role           Role           @default(USER)
+  emailVerified  Boolean        @default(false)
+  ownerProfileId Int?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  Account        Account[]
+  Booking        Booking[]
+  FacilityOwner  FacilityOwner?
+  Review         Review[]
+  Session        Session[]
+}
+
+model Venue {
+  id            Int           @id @default(autoincrement())
+  ownerId       Int
+  name          String
+  slug          String        @unique
+  description   String?
+  address       String
+  city          String
+  state         String?
+  country       String?       @default("India")
+  latitude      Float?
+  longitude     Float?
+  amenities     String[]      @default([])
+  image         String?
+  imagePublicId String?
+  approved      Boolean       @default(false)
+  rating        Float?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  Court         Court[]
+  Review        Review[]
+  FacilityOwner FacilityOwner @relation(fields: [ownerId], references: [id])
+
+  @@index([approved])
+  @@index([city])
+}
+
+model VerificationToken {
+  id         Int      @id @default(autoincrement())
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@index([identifier])
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
+enum Role {
+  USER
+  OWNER
+  ADMIN
+}

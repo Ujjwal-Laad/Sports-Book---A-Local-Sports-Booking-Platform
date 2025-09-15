@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "public"."Court" ALTER COLUMN "pricePerHour" SET DATA TYPE DOUBLE PRECISION;
